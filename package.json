@@ -1,0 +1,63 @@
+{
+  "name": "server-plus-exam-prep",
+  "version": "1.1.0",
+  "description": "Electron exam preparation app for CompTIA Server+ questions",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win nsis portable"
+  },
+  "build": {
+    "appId": "com.alber.serverplus.examprep",
+    "productName": "Server+ Exam Prep",
+    "directories": {
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "questions.db",
+        "to": "data/questions.db"
+      },
+      {
+        "from": "questions_sqlite.sql",
+        "to": "data/questions_sqlite.sql"
+      },
+      {
+        "from": "extracted_images",
+        "to": "data/extracted_images"
+      },
+      {
+        "from": "node_modules/sql.js/dist/sql-wasm.wasm",
+        "to": "sql.js/sql-wasm.wasm"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "ServerPlusExamPrep-Portable.exe"
+    }
+  },
+  "dependencies": {
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1"
+  }
+}

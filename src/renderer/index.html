@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Server+ Exam Prep</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="eyebrow">Exam Prep</p>
+          <h1>CompTIA Server+</h1>
+          <p id="mode-description" class="topbar-copy">
+            Practice the extracted question bank with instant feedback or switch to a timed exam simulator.
+          </p>
+        </div>
+
+        <div class="mode-switch" role="tablist" aria-label="Study modes">
+          <button id="mode-practice" class="mode-button active" type="button">Practice</button>
+          <button id="mode-exam" class="mode-button" type="button">Exam Simulator</button>
+        </div>
+
+        <div id="summary-strip" class="summary-strip" aria-live="polite"></div>
+
+        <div class="command-strip">
+          <button id="reset-progress" class="ghost-button" type="button">Reset Practice</button>
+          <button id="start-exam" class="solid-button" type="button">Start 90-Question Exam</button>
+          <button id="new-exam" class="ghost-button" type="button" hidden>New Random Exam</button>
+          <button id="submit-exam" class="solid-button danger" type="button" hidden>Submit Exam</button>
+        </div>
+      </header>
+
+      <main class="content-shell">
+        <section class="question-panel">
+          <header class="toolbar">
+            <div>
+              <p id="session-label" class="eyebrow">Practice Bank</p>
+              <h2 id="question-title">Loading...</h2>
+            </div>
+            <div class="toolbar-actions">
+              <span id="question-position" class="pill">Question 0 / 0</span>
+              <span id="selection-mode" class="pill muted">Single answer</span>
+              <span id="exam-clock" class="pill accent" hidden>90:00</span>
+            </div>
+          </header>
+
+          <section id="exam-intro" class="exam-intro" hidden>
+            <h3>Official Simulator Profile</h3>
+            <p>
+              CompTIA Server+ SK0-005 uses a maximum of 90 questions in 90 minutes. The simulator pulls a random 90-question set from your local bank and hides correctness until submission.
+            </p>
+          </section>
+
+          <article>
+            <p id="question-text" class="question-text"></p>
+            <div id="question-media" class="media-stack" hidden></div>
+            <div id="options-list" class="options-list"></div>
+          </article>
+
+          <div class="actions-row">
+            <button id="prev-button" class="ghost-button" type="button">Previous</button>
+            <button id="clear-selection" class="ghost-button" type="button">Clear Selection</button>
+            <button id="flag-question" class="ghost-button" type="button" hidden>Flag for Review</button>
+            <button id="check-button" class="solid-button" type="button" hidden>Check Answer</button>
+            <button id="toggle-explanation" class="ghost-button" type="button" disabled>
+              See Explanation
+            </button>
+            <button id="next-button" class="solid-button" type="button">Next</button>
+          </div>
+
+          <div id="feedback-banner" class="feedback-banner" hidden></div>
+
+          <section id="explanation-panel" class="explanation-panel" hidden>
+            <h3>Explanation</h3>
+            <p id="explanation-text"></p>
+            <div id="explanation-media" class="media-stack" hidden></div>
+          </section>
+        </section>
+
+        <section class="navigator-panel">
+          <div class="navigator-header">
+            <div>
+              <p class="eyebrow">Question Navigator</p>
+              <h3 id="navigator-title">Browse All Questions</h3>
+            </div>
+            <p id="navigator-caption" class="navigator-caption"></p>
+          </div>
+          <div id="question-grid" class="question-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

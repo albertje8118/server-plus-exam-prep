@@ -8,6 +8,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path, PurePosixPath
 from typing import TypedDict
 
+import fitz
+
 
 PKG_NS = "http://schemas.microsoft.com/office/2006/xmlPackage"
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
@@ -21,16 +23,16 @@ R_EMBED = f"{{{R_NS}}}embed"
 PKG_NAME = f"{{{PKG_NS}}}name"
 PKG_CONTENT_TYPE = f"{{{PKG_NS}}}contentType"
 
-QUESTION_RE = re.compile(r"^NEW QUESTION\s+(\d+)(?:\s+.*)?$", re.IGNORECASE)
+QUESTION_RE = re.compile(r"^(?:NEW\s+QUESTION|QUESTION:)\s+(\d+)(?:\s+.*)?$", re.IGNORECASE)
 INLINE_OPTION_RE = re.compile(r"^(.*?[?:])\s+([A-Z])\.\s+(.+)$")
 COMPACT_INLINE_OPTIONS_RE = re.compile(r"^(.*?[?:])\s+((?:[A-Z]\s+[^A-Z]+?\s*){2,})$")
 COMPACT_OPTION_PAIR_RE = re.compile(r"([A-Z])\s+([^A-Z]+?)(?=\s+[A-Z]\s+|$)")
 ANSWER_LINE_RE = re.compile(
-    r"^(?:Correct\s+)?Answer:\s*([A-Z][A-Z,\s]*)\s*(?:Explanation:\s*(.*))?$",
+    r"^(?:Correct\s+)?Answer(?:\(s\))?:\s*([A-Z][A-Z,\s]*)\s*(?:Explanation:\s*(.*))?$",
     re.IGNORECASE,
 )
 SQUASHED_OPTION_RE = re.compile(r"^([A-Z])([0-9].*)$")
-SHORT_LABELED_OPTION_RE = re.compile(r"^([A-Z])[.)]?\s+(.+)$")
+SHORT_LABELED_OPTION_RE = re.compile(r"^([A-Z])[.)]\s+(.+)$")
 REFERENCE_MARKER_RE = re.compile(r"\b(?:Verified\s+)?References?\s*[:=]\s*", re.IGNORECASE)
 REFERENCE_LIKE_RE = re.compile(
     r"(?:https?://|www\.|comptia|exam objectives|certification study guide|\bdomain\s+\d|\bobjective\s+\d|^\[[^\]]+\])",
@@ -41,7 +43,16 @@ DEFAULT_SOURCE_FILES = [
     "sk0-005_0.pdf.xml",
     "sk0-005_2.pdf.xml",
     "sk0-005_5.xml",
+    "sk0-005_7.pdf.xml",
+    "sk0-005_8.pdf.xml",
+    "SK0-005_en.pdf.xml",
 ]
+
+WORD_DOCUMENT_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"
+WORD_RELATIONSHIPS_CONTENT_TYPE = "application/vnd.openxmlformats-package.relationships+xml"
+WORD_IMAGE_RELATIONSHIP_TYPE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+PDF_HEADER_MARGIN = 50.0
+PDF_FOOTER_MARGIN = 40.0
 
 
 class ParagraphPayload(TypedDict):
@@ -90,6 +101,105 @@ MANUAL_EXPLANATIONS = {
     )
 }
 
+SKIPPED_RECORD_KEYS = {
+    ("sk0-005_7.pdf.xml", 8),
+    ("sk0-005_7.pdf.xml", 93),
+    ("sk0-005_7.pdf.xml", 233),
+    ("sk0-005_7.pdf.xml", 251),
+    ("sk0-005_7.pdf.xml", 284),
+}
+
+MANUAL_RECORD_OVERRIDES: dict[tuple[str, int], dict[str, object]] = {
+    (
+        "sk0-005_0.pdf.xml",
+        126,
+    ): {
+        "Explanation": "Correct the proxy server routing so internal destinations continue to use the interface toward the corporate firewall and the default route for internet-bound traffic uses the internet-facing firewall. Removing or correcting the bad route entry restores outbound access for users while preserving the intended separation between internal and external traffic.",
+    },
+    (
+        "sk0-005_2.pdf.xml",
+        14,
+    ): {
+        "Explanation": "Resolve the UPS alarms by redistributing the redundant power feeds so no PDU exceeds 9.6A and each dual-power device is split across PDU A and PDU B. Keep the mail relay in Rack 1 with corrected power assignments, move VM Host 1 and VM Host 2 to Rack 2, and assign their primary and failover feeds across opposite PDUs so both redundancy and load limits are maintained.",
+    },
+    (
+        "sk0-005_7.pdf.xml",
+        24,
+    ): {
+        "question": "A Linux server was recently updated. Now, the server stops during the boot process with a blank screen and a UEFI Shell prompt. Which of the following is the MOST likely cause of this issue?",
+        "Explanation": "The most likely cause is a missing Linux boot file that interrupted the UEFI boot process. A UEFI Shell prompt usually appears when the firmware cannot find the expected boot loader or related boot files, so the system drops to the shell instead of continuing startup. That makes the missing Linux boot file the best answer. References: [UEFI Shell Guide]",
+    },
+    (
+        "sk0-005_7.pdf.xml",
+        42,
+    ): {
+        "question": "An administrator is configuring a server to communicate with a new storage array. To do so, the administrator enters the WWPN of the new array in the server's storage configuration. Which of the following technologies is the new connection using?",
+        "options": [
+            {"label": "A", "text": "iSCSI", "images": []},
+            {"label": "B", "text": "eSATA", "images": []},
+            {"label": "C", "text": "NFS", "images": []},
+            {"label": "D", "text": "FCoE", "images": []},
+        ],
+        "answer": "D",
+        "Explanation": "WWPN stands for World Wide Port Name, which is associated with Fibre Channel storage networking. Of the listed options, FCoE is the Fibre Channel based technology, so it is the best match. iSCSI uses IP networking, NFS is a file-sharing protocol, and eSATA is direct-attached storage rather than a storage-network fabric.",
+    },
+    (
+        "sk0-005_8.pdf.xml",
+        3,
+    ): {
+        "Explanation": "Resolve the UPS alarms by redistributing the redundant power feeds so no PDU exceeds 9.6A and each dual-power device is split across PDU A and PDU B. Keep the mail relay in Rack 1 with corrected power assignments, move VM Host 1 and VM Host 2 to Rack 2, and assign their primary and failover feeds across opposite PDUs so both redundancy and load limits are maintained.",
+    },
+    (
+        "SK0-005_en.pdf.xml",
+        96,
+    ): {
+        "Explanation": "Correct the proxy server routing so internal destinations continue to use the interface toward the corporate firewall and the default route for internet-bound traffic uses the internet-facing firewall. Removing or correcting the bad route entry restores outbound access for users while preserving the intended separation between internal and external traffic.",
+    },
+    (
+        "SK0-005_en.pdf.xml",
+        166,
+    ): {
+        "question": "The HIDS logs on a server indicate a significant number of unauthorized access attempts via USB devices at startup. Which of the following steps should a server administrator take to BEST secure the server without limiting functionality?",
+        "options": [
+            {"label": "A", "text": "Set a BIOS/UEFI password on the server.", "images": []},
+            {"label": "B", "text": "Change the boot order on the server and restrict console access.", "images": []},
+            {"label": "C", "text": "Configure the host OS to deny login attempts via USB.", "images": []},
+            {"label": "D", "text": "Disable all the USB ports on the server.", "images": []},
+        ],
+        "answer": "B",
+    },
+    (
+        "SK0-005_en.pdf.xml",
+        331,
+    ): {
+        "question": "IDS alerts indicate abnormal traffic patterns are coming from a specific server in a data center that hosts sensitive data. Upon further investigation, the server administrator notices this server has been infected with a virus due to an exploit of a known vulnerability in its database software. Which of the following should the administrator perform after removing the virus to mitigate this issue from reoccurring and to maintain high availability? (Select three).",
+        "options": [
+            {"label": "A", "text": "Run a vulnerability scanner on the server.", "images": []},
+            {"label": "B", "text": "Repartition the hard drive that houses the database.", "images": []},
+            {"label": "C", "text": "Patch the vulnerability.", "images": []},
+            {"label": "D", "text": "Enable a host firewall.", "images": []},
+            {"label": "E", "text": "Reformat the OS on the server.", "images": []},
+            {"label": "F", "text": "Update the antivirus software.", "images": []},
+            {"label": "G", "text": "Remove the database software.", "images": []},
+            {"label": "H", "text": "Air gap the server from the network.", "images": []},
+        ],
+        "answer": "ACF",
+        "Explanation": "After the virus is removed, the administrator should run a vulnerability scanner to identify any remaining exposure, patch the database vulnerability that was exploited, and update the antivirus software so similar threats are detected and blocked in the future. Those three actions reduce the chance of recurrence while maintaining service availability. Repartitioning, reformatting the OS, removing the database software, or air-gapping the server would create unnecessary downtime or data loss, and a host firewall alone does not correct the exploited software weakness.",
+    },
+    (
+        "sk0-005_7.pdf.xml",
+        151,
+    ): {
+        "Explanation": "Encryption at rest is the best answer because it protects data stored on a device if that device is lost or stolen. The data remains unreadable without the proper decryption key or credentials. Encryption in transit protects data while it moves across a network, end-to-end encryption focuses on sender-to-recipient communications, and public key encryption is a cryptographic method rather than the specific protection model described here.",
+    },
+    (
+        "sk0-005_7.pdf.xml",
+        287,
+    ): {
+        "Explanation": "Kerberos depends on close time synchronization between systems. If the server clock differs from the LDAP or domain controller time by more than a few minutes, Kerberos ticket validation fails and authentication errors appear in the logs. That makes an out-of-sync system clock the most likely cause in this scenario.",
+    },
+}
+
 
 def normalize_text(value: str) -> str:
     value = value.replace("\xa0", " ")
@@ -110,6 +220,15 @@ def tidy_text(value: str) -> str:
         "clientsoftware": "client software",
         "thepingcommand": "the ping command",
         "thepingandipconfigcommands": "the ping and ipconfig commands",
+        "Which of me following": "Which of the following",
+        "When of the following": "Which of the following",
+        "tog in": "log in",
+        "tans": "fans",
+        "lo be encrypted": "to be encrypted",
+        "deartext": "cleartext",
+        "i SCSI": "iSCSI",
+        "e SATA": "eSATA",
+        "Fco E": "FCoE",
     }
     for old, new in replacements.items():
         value = value.replace(old, new)
@@ -123,6 +242,20 @@ def tidy_text(value: str) -> str:
 
 def normalize_answer(value: str) -> str:
     return "".join(character for character in value.upper() if character.isalpha())
+
+
+def image_content_type(extension: str) -> str:
+    normalized = extension.lower().lstrip(".")
+    return {
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "bmp": "image/bmp",
+        "tif": "image/tiff",
+        "tiff": "image/tiff",
+        "webp": "image/webp",
+    }.get(normalized, "application/octet-stream")
 
 
 def dedupe_preserve_order(values: list[str]) -> list[str]:
@@ -140,6 +273,170 @@ def dedupe_preserve_order(values: list[str]) -> list[str]:
         deduped.append(candidate)
 
     return deduped
+
+
+def append_text_paragraph(body: ET.Element, text: str) -> None:
+    paragraph = ET.SubElement(body, f"{{{W_NS}}}p")
+    run = ET.SubElement(paragraph, f"{{{W_NS}}}r")
+    text_node = ET.SubElement(run, f"{{{W_NS}}}t")
+    if text[:1].isspace() or text[-1:].isspace():
+        text_node.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    text_node.text = text
+
+
+def append_image_paragraph(body: ET.Element, relationship_id: str) -> None:
+    paragraph = ET.SubElement(body, f"{{{W_NS}}}p")
+    run = ET.SubElement(paragraph, f"{{{W_NS}}}r")
+    drawing = ET.SubElement(run, f"{{{W_NS}}}drawing")
+    ET.SubElement(drawing, f"{{{A_NS}}}blip", {R_EMBED: relationship_id})
+
+
+def should_exclude_pdf_block(block: dict[str, object], page_height: float) -> bool:
+    bbox = block.get("bbox")
+    if not isinstance(bbox, tuple) or len(bbox) != 4:
+        return False
+
+    top = float(bbox[1])
+    bottom = float(bbox[3])
+    if top < PDF_HEADER_MARGIN:
+        return True
+    if bottom > page_height - PDF_FOOTER_MARGIN:
+        return True
+    return False
+
+
+def append_pdf_block_text(body: ET.Element, block: dict[str, object]) -> None:
+    lines = block.get("lines")
+    if not isinstance(lines, list):
+        return
+
+    for line in lines:
+        if not isinstance(line, dict):
+            continue
+        text = "".join(
+            span.get("text", "")
+            for span in line.get("spans", [])
+            if isinstance(span, dict)
+        )
+        normalized = normalize_text(text)
+        if normalized:
+            append_text_paragraph(body, normalized)
+
+
+def build_pdf_word_xml(pdf_path: Path, xml_path: Path) -> None:
+    ET.register_namespace("pkg", PKG_NS)
+    ET.register_namespace("w", W_NS)
+    ET.register_namespace("a", A_NS)
+    ET.register_namespace("r", R_NS)
+    ET.register_namespace("rels", RELS_NS)
+
+    root = ET.Element(f"{{{PKG_NS}}}package")
+    document_part = ET.SubElement(
+        root,
+        f"{{{PKG_NS}}}part",
+        {
+            PKG_NAME: "/word/document.xml",
+            PKG_CONTENT_TYPE: WORD_DOCUMENT_CONTENT_TYPE,
+        },
+    )
+    xml_data = ET.SubElement(document_part, f"{{{PKG_NS}}}xmlData")
+    document = ET.SubElement(xml_data, f"{{{W_NS}}}document")
+    body = ET.SubElement(document, f"{{{W_NS}}}body")
+
+    relationships: list[tuple[str, str]] = []
+    binary_parts: list[tuple[str, str, bytes]] = []
+    relationship_index = 1
+    image_index = 1
+
+    with fitz.open(pdf_path) as pdf_document:
+        for page in pdf_document:
+            page_height = float(page.rect.height)
+            page_data = page.get_text("dict")
+            blocks = page_data.get("blocks") if isinstance(page_data, dict) else []
+            if not isinstance(blocks, list):
+                continue
+
+            for block in blocks:
+                if not isinstance(block, dict) or should_exclude_pdf_block(block, page_height):
+                    continue
+
+                block_type = block.get("type")
+                if block_type == 0:
+                    append_pdf_block_text(body, block)
+                    continue
+
+                if block_type != 1:
+                    continue
+
+                image_bytes = block.get("image")
+                extension = str(block.get("ext") or "png")
+                if not isinstance(image_bytes, (bytes, bytearray)) or not image_bytes:
+                    continue
+
+                relationship_id = f"rId{relationship_index}"
+                relationship_index += 1
+
+                image_name = f"image{image_index}.{extension.lower()}"
+                image_index += 1
+
+                binary_parts.append(
+                    (
+                        f"/word/media/{image_name}",
+                        image_content_type(extension),
+                        bytes(image_bytes),
+                    )
+                )
+                relationships.append((relationship_id, f"media/{image_name}"))
+                append_image_paragraph(body, relationship_id)
+
+    ET.SubElement(body, f"{{{W_NS}}}sectPr")
+
+    if relationships:
+        relationships_part = ET.SubElement(
+            root,
+            f"{{{PKG_NS}}}part",
+            {
+                PKG_NAME: "/word/_rels/document.xml.rels",
+                PKG_CONTENT_TYPE: WORD_RELATIONSHIPS_CONTENT_TYPE,
+            },
+        )
+        relationships_data = ET.SubElement(relationships_part, f"{{{PKG_NS}}}xmlData")
+        relationships_root = ET.SubElement(relationships_data, f"{{{RELS_NS}}}Relationships")
+        for relationship_id, target in relationships:
+            ET.SubElement(
+                relationships_root,
+                f"{{{RELS_NS}}}Relationship",
+                {
+                    "Id": relationship_id,
+                    "Type": WORD_IMAGE_RELATIONSHIP_TYPE,
+                    "Target": target,
+                },
+            )
+
+    for part_name, content_type, payload in binary_parts:
+        binary_part = ET.SubElement(
+            root,
+            f"{{{PKG_NS}}}part",
+            {
+                PKG_NAME: part_name,
+                PKG_CONTENT_TYPE: content_type,
+            },
+        )
+        binary_data = ET.SubElement(binary_part, f"{{{PKG_NS}}}binaryData")
+        binary_data.text = base64.b64encode(payload).decode("ascii")
+
+    ET.ElementTree(root).write(xml_path, encoding="utf-8", xml_declaration=True)
+
+
+def ensure_pdf_xml_source(source_path: Path) -> None:
+    if source_path.is_file() or not source_path.name.lower().endswith(".pdf.xml"):
+        return
+
+    pdf_path = source_path.with_name(source_path.name[:-4])
+    if not pdf_path.is_file():
+        return
+
+    build_pdf_word_xml(pdf_path, source_path)
 
 
 def normalize_part_name(part_name: str, target: str) -> str:
@@ -308,7 +605,7 @@ def parse_compact_inline_options(text: str) -> tuple[str, list[str]] | None:
 
 
 def parse_answer_line(text: str) -> tuple[str, str] | None:
-    compact_match = re.match(r"^(?:Correct\s+)?Answer:\s*Explanation:\s*([A-Z][A-Z,\s]*)$", text, re.IGNORECASE)
+    compact_match = re.match(r"^(?:Correct\s+)?Answer(?:\(s\))?:\s*Explanation:\s*([A-Z][A-Z,\s]*)$", text, re.IGNORECASE)
     if compact_match:
         return normalize_answer(compact_match.group(1)), ""
 
@@ -322,13 +619,13 @@ def parse_answer_line(text: str) -> tuple[str, str] | None:
 
 
 def split_answer_tail(text: str) -> tuple[str, str, str]:
-    compact_match = re.search(r"(?:Correct\s+)?Answer:\s*Explanation:\s*([A-Z][A-Z,\s]*)$", text, re.IGNORECASE)
+    compact_match = re.search(r"(?:Correct\s+)?Answer(?:\(s\))?:\s*Explanation:\s*([A-Z][A-Z,\s]*)$", text, re.IGNORECASE)
     if compact_match:
         prefix = tidy_text(text[: compact_match.start()])
         answer = normalize_answer(compact_match.group(1))
         return prefix, answer, ""
 
-    match = re.search(r"(?:Correct\s+)?Answer:\s*([A-Z][A-Z,\s]*)(?:\s*Explanation:\s*(.*))?$", text, re.IGNORECASE)
+    match = re.search(r"(?:Correct\s+)?Answer(?:\(s\))?:\s*([A-Z][A-Z,\s]*)(?:\s*Explanation:\s*(.*))?$", text, re.IGNORECASE)
     if not match:
         return tidy_text(text), "", ""
 
@@ -434,16 +731,30 @@ def finalize_record(record: QuestionDraft) -> QuestionRow:
             }
         )
 
+    answer_text = normalize_answer(record["answer"])
+    override = MANUAL_RECORD_OVERRIDES.get((record["source"], record["questionID"]))
+    if override is not None:
+        question_text = str(override.get("question", question_text))
+        explanation_text = str(override.get("Explanation", explanation_text))
+        answer_text = str(override.get("answer", answer_text))
+        override_options = override.get("options")
+        if isinstance(override_options, list):
+            normalized_options = override_options
+
     return {
         "source": record["source"],
         "questionID": record["questionID"],
         "question": question_text,
         "questionImages": json.dumps(question_images, ensure_ascii=True),
         "options": json.dumps(normalized_options, ensure_ascii=True),
-        "answer": normalize_answer(record["answer"]),
+        "answer": answer_text,
         "Explanation": explanation_text,
         "explanationImages": json.dumps(explanation_images, ensure_ascii=True),
     }
+
+
+def should_skip_record(record: QuestionRow) -> bool:
+    return (record["source"], record["questionID"]) in SKIPPED_RECORD_KEYS
 
 
 def extract_questions(source_path: Path) -> list[QuestionRow]:
@@ -476,7 +787,7 @@ def extract_questions(source_path: Path) -> list[QuestionRow]:
         if question_match:
             if current is not None:
                 finalized = finalize_record(current)
-                if not is_promotional_record(finalized):
+                if not is_promotional_record(finalized) and not should_skip_record(finalized):
                     records.append(finalized)
             current = question_record(int(question_match.group(1)), source_path.name)
             mode = "question"
@@ -512,7 +823,7 @@ def extract_questions(source_path: Path) -> list[QuestionRow]:
                 continue
 
             short_labeled_option_match = SHORT_LABELED_OPTION_RE.match(text) if text else None
-            if short_labeled_option_match and text and len(text) <= 12:
+            if short_labeled_option_match:
                 add_option(current, short_labeled_option_match.group(2), images)
                 continue
 
@@ -559,7 +870,7 @@ def extract_questions(source_path: Path) -> list[QuestionRow]:
 
     if current is not None:
         finalized = finalize_record(current)
-        if not is_promotional_record(finalized):
+        if not is_promotional_record(finalized) and not should_skip_record(finalized):
             records.append(finalized)
 
     return records
@@ -665,6 +976,8 @@ def write_sql(records: list[QuestionRow], destination: Path) -> None:
 
 def discover_source_files(workspace: Path) -> list[Path]:
     source_files = [workspace / file_name for file_name in DEFAULT_SOURCE_FILES]
+    for path in source_files:
+        ensure_pdf_xml_source(path)
     return [path for path in source_files if path.is_file()]
 
 

@@ -12,7 +12,7 @@ coverage/
 *.htm
 *_files/
 
-sk0-005_*.pdf
+
 questions.db
 questions_sqlite.csv
 questions_sqlite.sql

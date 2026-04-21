@@ -46,8 +46,15 @@ async function ensureDatabaseFile() {
     return dbPath;
   }
 
+  const sqlSourcePath = getDataPath(SQL_SOURCE_FILE);
+  if (!fs.existsSync(sqlSourcePath)) {
+    throw new Error(
+      `Bundled question data is missing. Expected one of: ${dbPath} or ${sqlSourcePath}`
+    );
+  }
+
   const SQL = await getSqlModule();
-  const sqlText = fs.readFileSync(getDataPath(SQL_SOURCE_FILE), 'utf8');
+  const sqlText = fs.readFileSync(sqlSourcePath, 'utf8');
   const db = new SQL.Database();
   db.run(sqlText);
   const buffer = Buffer.from(db.export());

@@ -12,10 +12,6 @@ coverage/
 *.htm
 *_files/
 
-
-questions.db
-questions_sqlite.csv
-questions_sqlite.sql
 questions_duplicates.csv
 
 Thumbs.db

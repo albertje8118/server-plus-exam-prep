@@ -908,7 +908,6 @@ def write_csv(records: list[QuestionRow], destination: Path) -> None:
         writer = csv.DictWriter(
             handle,
             fieldnames=[
-                "questionID",
                 "question",
                 "questionImages",
                 "options",
@@ -948,7 +947,6 @@ def write_sql(records: list[QuestionRow], destination: Path) -> None:
         "DROP TABLE IF EXISTS questions;",
         "CREATE TABLE questions (",
         "    id INTEGER PRIMARY KEY AUTOINCREMENT,",
-        "    questionID INTEGER NOT NULL,",
         "    question TEXT NOT NULL,",
         "    question_images TEXT NOT NULL DEFAULT '[]',",
         "    options TEXT NOT NULL,",
@@ -960,9 +958,8 @@ def write_sql(records: list[QuestionRow], destination: Path) -> None:
 
     for record in records:
         lines.append(
-            "INSERT INTO questions (questionID, question, question_images, options, answer, explanation, explanation_images) VALUES "
-            f"({record['questionID']}, "
-            f"'{sql_escape(record['question'])}', "
+            "INSERT INTO questions (question, question_images, options, answer, explanation, explanation_images) VALUES "
+            f"('{sql_escape(record['question'])}', "
             f"'{sql_escape(record['questionImages'])}', "
             f"'{sql_escape(record['options'])}', "
             f"'{sql_escape(record['answer'])}', "

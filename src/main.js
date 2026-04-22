@@ -99,12 +99,11 @@ function toAssetUrls(serializedPaths) {
 async function loadQuestions() {
   const db = await getDatabase();
   const result = db.exec(
-    'SELECT id, questionID, question, question_images, options, answer, explanation, explanation_images FROM questions ORDER BY id ASC'
+    'SELECT id, question, question_images, options, answer, explanation, explanation_images FROM questions ORDER BY id ASC'
   );
 
   return mapExecRows(result).map((row) => ({
     id: row.id,
-    questionID: row.questionID,
     question: row.question,
     questionImages: toAssetUrls(row.question_images),
     options: JSON.parse(row.options).map((option) => ({

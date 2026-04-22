@@ -438,7 +438,7 @@ function renderQuestion() {
     : isExamRunning
       ? 'Timed Exam Session'
       : 'Exam Review';
-  elements.questionTitle.textContent = `Question ${question.questionID}`;
+  elements.questionTitle.textContent = `Question ${state.currentIndex + 1}`;
   elements.questionPosition.textContent = `Question ${state.currentIndex + 1} / ${questions.length}`;
   elements.selectionMode.textContent = isMultiSelect(question) ? 'Multiple answer' : 'Single answer';
   elements.questionText.textContent = question.question;

@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Exam Pack License Service API
+  version: 1.0.0
+  summary: Enterprise DRM API for device registration, entitlement lookup, and decryption license issuance.
+  description: |
+    This API defines the server-side contract for the exam player DRM flow.
+
+    Core rules:
+    - The caller must be an authenticated player session.
+    - Device registration is required before license issuance.
+    - A decryption license is issued per pack, per pack version, per device, and per lease window.
+servers:
+  - url: https://license.example.com
+    description: Production
+  - url: https://license-dev.example.com
+    description: Development
+security:
+  - bearerAuth: []
+tags:
+  - name: Devices
+  - name: Entitlements
+  - name: Licenses
+paths:
+  /v1/devices/register:
+    post:
+      tags: [Devices]
+      summary: Register or rotate a player device public key
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDeviceRequest'
+      responses:
+        '200':
+          description: Device registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterDeviceResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/entitlements/me:
+    get:
+      tags: [Entitlements]
+      summary: Get effective entitlements for the authenticated account
+      operationId: getMyEntitlements
+      responses:
+        '200':
+          description: Effective entitlements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEntitlementsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/licenses/issue:
+    post:
+      tags: [Licenses]
+      summary: Issue a decryption license for one pack on one device
+      operationId: issueLicense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueLicenseRequest'
+      responses:
+        '200':
+          description: License issued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueLicenseResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Entitlement or device policy denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/licenses/refresh:
+    post:
+      tags: [Licenses]
+      summary: Refresh an existing offline lease
+      operationId: refreshLicense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshLicenseRequest'
+      responses:
+        '200':
+          description: License refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueLicenseResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Refresh not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/licenses/revoke:
+    post:
+      tags: [Licenses]
+      summary: Revoke a device or license
+      operationId: revokeLicense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeLicenseRequest'
+      responses:
+        '202':
+          description: Revocation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeLicenseResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    DeviceStatus:
+      type: string
+      enum: [active, revoked, disabled]
+    LicenseStatus:
+      type: string
+      enum: [issued, refreshed, revoked, expired]
+    RegisterDeviceRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - deviceId
+        - platform
+        - playerVersion
+        - publicKeyPem
+        - keyAlgorithm
+      properties:
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        platform:
+          type: string
+          enum: [windows]
+        playerVersion:
+          type: string
+          minLength: 1
+          maxLength: 32
+        publicKeyPem:
+          type: string
+          minLength: 1
+        keyAlgorithm:
+          type: string
+          enum: [rsa-oaep-256, ecdh-p256]
+    RegisterDeviceResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - deviceId
+        - status
+        - publicKeyRef
+      properties:
+        deviceId:
+          type: string
+        status:
+          type: string
+          enum: [registered]
+        publicKeyRef:
+          type: string
+    DeviceSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - deviceId
+        - status
+      properties:
+        deviceId:
+          type: string
+        status:
+          $ref: '#/components/schemas/DeviceStatus'
+    GetEntitlementsResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - accountId
+        - entitlements
+        - credits
+        - devices
+      properties:
+        accountId:
+          type: string
+        entitlements:
+          type: array
+          items:
+            type: string
+        credits:
+          type: integer
+          minimum: 0
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceSummary'
+    IssueLicenseRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - packId
+        - packVersion
+        - sku
+        - deviceId
+        - publicKeyRef
+        - playerVersion
+        - packManifestHash
+        - challenge
+      properties:
+        packId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        packVersion:
+          type: string
+          minLength: 1
+          maxLength: 32
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 128
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        publicKeyRef:
+          type: string
+          minLength: 1
+          maxLength: 128
+        playerVersion:
+          type: string
+          minLength: 1
+          maxLength: 32
+        packManifestHash:
+          type: string
+          pattern: '^[A-Fa-f0-9]{64}$'
+        challenge:
+          type: string
+          minLength: 8
+          maxLength: 512
+    IssueLicenseResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - licenseToken
+        - wrappedKey
+        - leaseExpiresAt
+      properties:
+        licenseToken:
+          type: string
+          minLength: 1
+        wrappedKey:
+          type: string
+          minLength: 1
+        leaseExpiresAt:
+          type: string
+          format: date-time
+    RefreshLicenseRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - licenseId
+        - packId
+        - packVersion
+        - deviceId
+      properties:
+        licenseId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        packId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        packVersion:
+          type: string
+          minLength: 1
+          maxLength: 32
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+    RevokeLicenseRequest:
+      type: object
+      additionalProperties: false
+      anyOf:
+        - required: [licenseId]
+        - required: [deviceId]
+      properties:
+        licenseId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        deviceId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 256
+    RevokeLicenseResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [accepted]
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string

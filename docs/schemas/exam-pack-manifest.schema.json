@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/exam-pack-manifest.schema.json",
+  "title": "Exam Pack Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "packId",
+    "packVersion",
+    "title",
+    "vendor",
+    "product",
+    "examCode",
+    "certification",
+    "language",
+    "questionCount",
+    "distribution",
+    "compatiblePlayer",
+    "licensing",
+    "modes",
+    "examProfile",
+    "hashes",
+    "security"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "packId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "packVersion": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "vendor": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "product": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "certification": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "examCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"
+    },
+    "questionCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["publisher", "channel", "releaseDate"],
+      "properties": {
+        "publisher": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "channel": {
+          "type": "string",
+          "enum": ["official", "partner", "internal"]
+        },
+        "releaseDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "compatiblePlayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max"],
+      "properties": {
+        "min": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
+        },
+        "max": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      }
+    },
+    "licensing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "sku", "requiresEntitlement", "offlineLeaseHours"],
+      "properties": {
+        "model": {
+          "type": "string",
+          "enum": ["free", "subscription", "credit", "subscription_or_credit"]
+        },
+        "sku": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+          "minLength": 3,
+          "maxLength": 128
+        },
+        "requiresEntitlement": {
+          "type": "boolean"
+        },
+        "offlineLeaseHours": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8760
+        }
+      }
+    },
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["practice", "timedExam"],
+      "properties": {
+        "practice": {
+          "type": "boolean"
+        },
+        "timedExam": {
+          "type": "boolean"
+        }
+      }
+    },
+    "examProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maxQuestions", "defaultDurationMinutes"],
+      "properties": {
+        "maxQuestions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "defaultDurationMinutes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database"],
+      "properties": {
+        "database": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*\\.\\.)(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+$"
+        }
+      }
+    },
+    "hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "checksumsFile"],
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "enum": ["sha256"]
+        },
+        "checksumsFile": {
+          "type": "string",
+          "const": "checksums.json"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature", "contentEncryption"],
+      "properties": {
+        "signature": {
+          "type": "string",
+          "const": "signature.json"
+        },
+        "contentEncryption": {
+          "type": "string",
+          "enum": ["optional", "required"]
+        },
+        "drm": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "contentKeyId",
+            "payload",
+            "cipher",
+            "licenseAudience",
+            "requiresOnlineActivation",
+            "offlineLeaseHours"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "const": "license-token-v1"
+            },
+            "contentKeyId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "payload": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\.\\.)(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\\.enc$"
+            },
+            "cipher": {
+              "type": "string",
+              "enum": ["aes-256-gcm"]
+            },
+            "licenseAudience": {
+              "type": "string",
+              "const": "desktop-player"
+            },
+            "requiresOnlineActivation": {
+              "type": "boolean"
+            },
+            "offlineLeaseHours": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8760
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "contentEncryption": {
+                "const": "required"
+              }
+            },
+            "required": ["contentEncryption"]
+          },
+          "then": {
+            "required": ["drm"]
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "security": {
+            "properties": {
+              "contentEncryption": {
+                "const": "optional"
+              }
+            },
+            "required": ["contentEncryption"]
+          }
+        }
+      },
+      "then": {
+        "required": ["entry"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "security": {
+            "properties": {
+              "contentEncryption": {
+                "const": "required"
+              }
+            },
+            "required": ["contentEncryption"]
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "required": ["entry"]
+        }
+      }
+    }
+  ]
+}

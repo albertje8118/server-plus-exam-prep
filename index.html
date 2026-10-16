@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Free desktop study app for the CompTIA Server+ (SK0-005) certification exam. Practice mode, timed exam simulator, offline, no signup." />
+  <meta name="author" content="Albert Jeremy" />
+  <meta property="og:title" content="Server+ Exam Prep — Download for Windows" />
+  <meta property="og:description" content="Free desktop study app for the CompTIA Server+ (SK0-005) certification exam. Practice mode, timed exam simulator, offline, no signup." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://albertje8118.github.io/server-plus-exam-prep/" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <title>Server+ Exam Prep — Download for Windows</title>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="canonical" href="https://albertje8118.github.io/server-plus-exam-prep/" />
+
+  <style>
+    /* ------------------------------------------------------------------ */
+    /*  Reset & base                                                       */
+    /* ------------------------------------------------------------------ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
+                   "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--fg);
+      background: var(--bg);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      display: flex;
+      flex-direction: column;
+    }
+
+    :root {
+      --bg:            #0d1117;
+      --bg-elevated:   #161b22;
+      --bg-elevated-2: #1c2128;
+      --border:        #30363d;
+      --border-soft:   #21262d;
+      --fg:            #e6edf3;
+      --fg-muted:      #8d96a0;
+      --fg-subtle:     #6e7681;
+      --accent:        #f59e0b;     /* warm amber — study / achievement */
+      --accent-hover:  #fbbf24;
+      --accent-press:  #d97706;
+      --accent-soft:   rgba(245, 158, 11, 0.12);
+      --accent-border: rgba(245, 158, 11, 0.35);
+      --success:       #3fb950;
+      --focus-ring:    rgba(245, 158, 11, 0.45);
+      --shadow-lg:     0 18px 40px -16px rgba(0, 0, 0, 0.55),
+                       0 0 0 1px var(--border-soft);
+      --radius-sm:     8px;
+      --radius-md:     12px;
+      --radius-lg:     16px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Accessible focus */
+    :focus-visible {
+      outline: 2px solid var(--focus-ring);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Background — subtle grid + radial highlight                        */
+    /* ------------------------------------------------------------------ */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        radial-gradient(circle at 50% -10%,
+          rgba(245, 158, 11, 0.10),
+          transparent 55%),
+        linear-gradient(180deg, #0d1117 0%, #0a0e13 100%);
+      pointer-events: none;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      background-position: -1px -1px;
+      mask-image: radial-gradient(ellipse at center, black 35%, transparent 90%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 35%, transparent 90%);
+      pointer-events: none;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Layout                                                             */
+    /* ------------------------------------------------------------------ */
+    .wrap {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Header                                                             */
+    /* ------------------------------------------------------------------ */
+    header.site {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .site-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--fg);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .brand:hover { text-decoration: none; }
+    .brand-mark {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent) 0%, #b45309 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #0a0e13;
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.4);
+    }
+    .brand-text { font-size: 15px; }
+    .brand-text small {
+      display: block;
+      color: var(--fg-subtle);
+      font-weight: 400;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .header-links { display: inline-flex; gap: 6px; }
+    .header-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--fg-muted);
+      font-size: 14px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .header-links a:hover {
+      background: var(--bg-elevated);
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .header-links svg { width: 16px; height: 16px; }
+
+    /* ------------------------------------------------------------------ */
+    /*  Hero                                                               */
+    /* ------------------------------------------------------------------ */
+    .hero {
+      padding: 64px 0 32px;
+      text-align: center;
+    }
+    .eyebrow {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .eyebrow .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-right: 6px;
+      vertical-align: 1px;
+      box-shadow: 0 0 8px var(--success);
+    }
+    h1.title {
+      font-size: clamp(36px, 6vw, 52px);
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      font-weight: 700;
+      margin: 0 0 16px;
+      color: var(--fg);
+    }
+    h1.title .plus {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .subtitle {
+      font-size: clamp(16px, 2vw, 18px);
+      color: var(--fg-muted);
+      max-width: 600px;
+      margin: 0 auto 0;
+      line-height: 1.6;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Download cards                                                     */
+    /* ------------------------------------------------------------------ */
+    .downloads {
+      padding: 32px 0 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .card:hover {
+      border-color: var(--border);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .card.primary {
+      background: linear-gradient(180deg, #1c2128 0%, #161b22 100%);
+      border-color: var(--accent-border);
+      box-shadow: 0 0 0 1px var(--accent-border),
+                  0 18px 40px -16px rgba(0, 0, 0, 0.55);
+    }
+    .card.primary::before {
+      content: "Recommended";
+      position: absolute;
+      transform: translateY(-32px);
+      padding: 4px 10px;
+      background: var(--accent);
+      color: #0a0e13;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-radius: 6px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .card-icon {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+    }
+    .card.primary .card-icon {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+    .card-icon svg { width: 22px; height: 22px; }
+
+    .card-head-text { flex: 1; min-width: 0; }
+    .card-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--fg-subtle);
+      margin-bottom: 4px;
+    }
+    .card-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .card-desc {
+      color: var(--fg-muted);
+      font-size: 14.5px;
+      margin: 8px 0 16px;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      font-size: 13px;
+      font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      color: var(--fg-muted);
+      flex-wrap: wrap;
+    }
+    .file-name {
+      color: var(--fg);
+      word-break: break-all;
+      font-weight: 500;
+    }
+    .file-meta {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .file-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .file-meta span::before {
+      content: "";
+      display: inline-block;
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--fg-subtle);
+    }
+    .file-meta span:first-child::before { display: none; }
+
+    .checksum {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      font-size: 11.5px;
+      color: var(--fg-subtle);
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .checksum-label {
+      display: block;
+      color: var(--fg-subtle);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Buttons                                                            */
+    /* ------------------------------------------------------------------ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.005em;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      text-decoration: none;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0e13;
+      box-shadow: 0 4px 14px -2px rgba(245, 158, 11, 0.35);
+    }
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      text-decoration: none;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px -2px rgba(245, 158, 11, 0.45);
+    }
+    .btn-primary:active {
+      background: var(--accent-press);
+      transform: translateY(0);
+    }
+    .btn-secondary {
+      background: var(--bg-elevated-2);
+      color: var(--fg);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      background: #21262d;
+      border-color: var(--fg-subtle);
+      text-decoration: none;
+    }
+
+    .btn svg { width: 16px; height: 16px; }
+    .btn-block { width: 100%; }
+
+    .card-actions { display: flex; gap: 8px; }
+    .card-actions .btn { flex: 1; }
+
+    /* ------------------------------------------------------------------ */
+    /*  Feature grid                                                       */
+    /* ------------------------------------------------------------------ */
+    .features {
+      padding: 48px 0 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .feature {
+      padding: 18px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+    }
+    .feature-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    .feature-icon svg { width: 18px; height: 18px; }
+    .feature h3 {
+      margin: 0 0 4px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--fg);
+      letter-spacing: -0.01em;
+    }
+    .feature p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--fg-muted);
+      line-height: 1.5;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  System requirements                                                */
+    /* ------------------------------------------------------------------ */
+    .sysreq {
+      padding: 24px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 16px 0 48px;
+    }
+    .sysreq-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+    .sysreq-icon svg { width: 22px; height: 22px; }
+    .sysreq-text { flex: 1; min-width: 200px; }
+    .sysreq-text h3 {
+      margin: 0 0 4px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .sysreq-text p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--fg-muted);
+    }
+    .sysreq-list {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--fg-muted);
+    }
+    .sysreq-list span strong {
+      color: var(--fg);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Footer                                                             */
+    /* ------------------------------------------------------------------ */
+    footer.site {
+      margin-top: auto;
+      padding: 32px 0 40px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 13.5px;
+      color: var(--fg-muted);
+    }
+    .footer-row a { color: var(--fg-muted); }
+    .footer-row a:hover { color: var(--fg); text-decoration: underline; }
+    .footer-links { display: inline-flex; gap: 18px; flex-wrap: wrap; }
+
+    /* ------------------------------------------------------------------ */
+    /*  Responsive                                                         */
+    /* ------------------------------------------------------------------ */
+    @media (max-width: 640px) {
+      .hero { padding: 40px 0 24px; }
+      .card { padding: 20px; }
+      .card.primary::before { transform: translateY(-28px); font-size: 10px; }
+      .file-row { font-size: 12px; }
+      .sysreq { flex-direction: column; align-items: flex-start; }
+      .brand-text small { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site">
+    <div class="wrap site-row">
+      <a class="brand" href="./">
+        <span class="brand-mark">S+</span>
+        <span class="brand-text">
+          Server+ Exam Prep
+          <small>SK0-005 · v1.1.5</small>
+        </span>
+      </a>
+      <nav class="header-links" aria-label="External">
+        <a href="https://github.com/albertje8118/server-plus-exam-prep" rel="noopener" aria-label="Source on GitHub">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          Source
+        </a>
+        <a href="https://github.com/albertje8118/server-plus-exam-prep/releases" rel="noopener" aria-label="All releases">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M1 7.775V2.75C1 1.784 1.784 1 2.75 1h5.025c.464 0 .91.184 1.238.513l6.25 6.25a1.75 1.75 0 010 2.474l-5.026 5.026a1.75 1.75 0 01-2.474 0l-6.25-6.25A1.752 1.752 0 011 7.775zm1.5 0c0 .066.026.13.073.177l6.25 6.25a.25.25 0 00.354 0l5.025-5.025a.25.25 0 000-.354l-6.25-6.25a.25.25 0 00-.177-.073H2.75a.25.25 0 00-.25.25zM6 5a1 1 0 11 0 2 1 1 0 000-2z"/>
+          </svg>
+          Releases
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <section class="hero">
+      <span class="eyebrow"><span class="dot"></span>v1.1.5 — Released April 2026</span>
+      <h1 class="title">CompTIA Server<span class="plus">+</span><br />Exam Prep, on your desktop.</h1>
+      <p class="subtitle">
+        Free, offline study tool for the SK0-005 certification. Practice every question,
+        run a timed exam simulator, and review explanations — no signup, no telemetry.
+      </p>
+    </section>
+
+    <section class="downloads" aria-label="Download">
+
+      <!-- Primary: portable -->
+      <article class="card primary" style="position: relative;">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <div class="card-head-text">
+            <div class="card-label">Portable · No install required</div>
+            <h2 class="card-title">Download for Windows</h2>
+          </div>
+        </div>
+        <p class="card-desc">
+          A single self-contained executable. Run it directly from any folder or USB drive —
+          nothing is written to the registry, no admin rights needed.
+        </p>
+        <div class="file-row">
+          <span class="file-name">ServerPlusExamPrep-Portable.exe</span>
+          <span class="file-meta">
+            <span>101 MB</span>
+            <span>64-bit</span>
+            <span>Windows 10/11</span>
+          </span>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-primary btn-block"
+             href="https://github.com/albertje8118/server-plus-exam-prep/releases/latest/download/ServerPlusExamPrep-Portable.exe"
+             rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Portable
+          </a>
+        </div>
+        <details style="margin-top: 14px;">
+          <summary style="cursor: pointer; color: var(--fg-subtle); font-size: 12.5px; user-select: none;">
+            Show SHA-256 checksum
+          </summary>
+          <div class="checksum">
+            <span class="checksum-label">SHA-256</span>
+            7b528b6ffae9061a8d8801bbf09b96a63d1c1e2804ca789521063ed06bc9a59f
+          </div>
+        </details>
+      </article>
+
+      <!-- Secondary: NSIS setup -->
+      <article class="card">
+        <div class="card-head">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <div class="card-head-text">
+            <div class="card-label">Setup · Installs to Program Files</div>
+            <h2 class="card-title">Or use the NSIS installer</h2>
+          </div>
+        </div>
+        <p class="card-desc">
+          Adds Start Menu and Desktop shortcuts and registers the app with Windows.
+          Choose this if you want a permanent install with an uninstaller.
+        </p>
+        <div class="file-row">
+          <span class="file-name">ServerPlusExamPrep-Setup.exe</span>
+          <span class="file-meta">
+            <span>101 MB</span>
+            <span>64-bit</span>
+            <span>NSIS</span>
+          </span>
+        </div>
+        <div class="card-actions">
+          <a class="btn btn-secondary btn-block"
+             href="https://github.com/albertje8118/server-plus-exam-prep/releases/latest/download/ServerPlusExamPrep-Setup.exe"
+             rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Installer
+          </a>
+        </div>
+        <details style="margin-top: 14px;">
+          <summary style="cursor: pointer; color: var(--fg-subtle); font-size: 12.5px; user-select: none;">
+            Show SHA-256 checksum
+          </summary>
+          <div class="checksum">
+            <span class="checksum-label">SHA-256</span>
+            de50fc06ec25c3f03c96a397ff82556bb8e0ef4c80bc016ed04d35709a5e06f2
+          </div>
+        </details>
+      </article>
+
+    </section>
+
+    <section class="features" aria-label="Features">
+      <div class="feature">
+        <div class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <h3>Timed exam simulator</h3>
+        <p>Up to 90 random questions in a 90-minute session, mirroring the official SK0-005 profile.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <h3>Practice mode</h3>
+        <p>Answer every question in the bank with instant feedback and per-question explanations.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <h3>Image-rich questions</h3>
+        <p>All extracted figures and diagrams from the SK0-005 source PDF are bundled in.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <h3>100% offline</h3>
+        <p>Local SQLite-backed question bank. No accounts, no ads, no network required after install.</p>
+      </div>
+    </section>
+
+    <section class="sysreq" aria-label="System requirements">
+      <div class="sysreq-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <div class="sysreq-text">
+        <h3>System requirements</h3>
+        <p>Runs on a stock Windows install — no extra dependencies needed.</p>
+      </div>
+      <div class="sysreq-list">
+        <span><strong>OS</strong> Windows 10, 11</span>
+        <span><strong>Arch</strong> x64</span>
+        <span><strong>Disk</strong> ~250 MB</span>
+        <span><strong>Runtime</strong> Bundled</span>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site">
+    <div class="wrap footer-row">
+      <div>
+        © 2026 Albert Jeremy ·
+        <a href="https://github.com/albertje8118/server-plus-exam-prep/blob/main/LICENSE" rel="noopener">MIT License</a>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/albertje8118/server-plus-exam-prep" rel="noopener">Source</a>
+        <a href="https://github.com/albertje8118/server-plus-exam-prep/releases/tag/v1.1.5" rel="noopener">v1.1.5 changelog</a>
+        <a href="https://www.comptia.org/certifications/server" rel="noopener">Official SK0-005</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

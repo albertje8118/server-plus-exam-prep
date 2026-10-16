@@ -226,6 +226,59 @@
     }
 
     /* ------------------------------------------------------------------ */
+    /*  Try-the-web-player CTA                                             */
+    /* ------------------------------------------------------------------ */
+    .try-web {
+      padding: 24px 0 0;
+    }
+    .try-web-link {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 22px;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.10) 0%, rgba(31, 111, 235, 0.10) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: var(--radius-md);
+      color: var(--fg);
+      text-decoration: none;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .try-web-link:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent-hover);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(31, 111, 235, 0.14) 100%);
+      text-decoration: none;
+    }
+    .try-web-icon {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+    .try-web-icon svg { width: 22px; height: 22px; }
+    .try-web-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .try-web-eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .try-web-text strong { font-size: 16px; font-weight: 600; }
+    .try-web-sub { font-size: 13px; color: var(--fg-muted); }
+    .try-web-arrow {
+      font-size: 22px;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+    .try-web-link:hover .try-web-arrow { color: var(--accent); }
+
+    /* ------------------------------------------------------------------ */
     /*  Download cards                                                     */
     /* ------------------------------------------------------------------ */
     .downloads {
@@ -595,6 +648,24 @@
         Free, offline study tool for the SK0-005 certification. Practice every question,
         run a timed exam simulator, and review explanations — no signup, no telemetry.
       </p>
+    </section>
+
+    <section class="try-web" aria-label="Try in browser">
+      <a class="try-web-link" href="./player/" rel="noopener">
+        <span class="try-web-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+        </span>
+        <span class="try-web-text">
+          <span class="try-web-eyebrow">No install · Browser-only · v2</span>
+          <strong>Launch the Web Player</strong>
+          <span class="try-web-sub">All 460 questions run in your browser via sql.js — no download needed.</span>
+        </span>
+        <span class="try-web-arrow" aria-hidden="true">&rarr;</span>
+      </a>
     </section>
 
     <section class="downloads" aria-label="Download">

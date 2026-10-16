@@ -571,6 +571,54 @@
     }
 
     /* ------------------------------------------------------------------ */
+    /*  Source data section                                               */
+    /* ------------------------------------------------------------------ */
+    .source-data {
+      padding: 24px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 16px 0 48px;
+    }
+    .source-data-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+    .source-data-icon svg { width: 22px; height: 22px; }
+    .source-data-text { flex: 1; min-width: 220px; }
+    .source-data-text h3 {
+      margin: 0 0 4px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .source-data-text p {
+      margin: 0;
+      font-size: 13.5px;
+      color: var(--fg-muted);
+    }
+    .source-data-links {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .source-data-links .btn svg { width: 15px; height: 15px; }
+    @media (max-width: 640px) {
+      .source-data { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ------------------------------------------------------------------ */
     /*  Footer                                                             */
     /* ------------------------------------------------------------------ */
     footer.site {
@@ -831,6 +879,47 @@
         <span><strong>Arch</strong> x64</span>
         <span><strong>Disk</strong> ~250 MB</span>
         <span><strong>Runtime</strong> Bundled</span>
+      </div>
+    </section>
+
+    <section class="source-data" aria-label="Source data">
+      <div class="source-data-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/>
+          <line x1="9" y1="17" x2="15" y2="17"/>
+        </svg>
+      </div>
+      <div class="source-data-text">
+        <h3>Source data</h3>
+        <p>The PDF that fed the question bank, plus the extracted data itself. Useful for offline study or rebuilding the app.</p>
+      </div>
+      <div class="source-data-links">
+        <a class="btn btn-secondary" href="https://raw.githubusercontent.com/albertje8118/server-plus-exam-prep/main/CompTIA-SK0-005.pdf" rel="noopener" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Source PDF (2 MB)
+        </a>
+        <a class="btn btn-secondary" href="https://raw.githubusercontent.com/albertje8118/server-plus-exam-prep/main/questions_sqlite.csv" rel="noopener" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          questions_sqlite.csv
+        </a>
+        <a class="btn btn-secondary" href="https://raw.githubusercontent.com/albertje8118/server-plus-exam-prep/main/questions.db" rel="noopener" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          questions.db
+        </a>
       </div>
     </section>
 
